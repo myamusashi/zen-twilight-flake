@@ -28,8 +28,8 @@ export def generate_sources []: nothing -> record {
 	}
   }
 
-  let x86_64_url = $"https://github.com/zen-browser/desktop/releases/download/($tag)/zen.linux-x86_64.tar.bz2"
-  let aarch64_url = $"https://github.com/zen-browser/desktop/releases/download/($tag)/zen.linux-aarch64.tar.bz2"
+  let x86_64_url = $"https://github.com/zen-browser/desktop/releases/download/twilight/zen.linux-x86_64.tar.bz2"
+  let aarch64_url = $"https://github.com/zen-browser/desktop/releases/download/twilight/zen.linux-x86_64.tar.bz2"
   let sources = {
 	version: $tag
 	x86_64-linux: {
