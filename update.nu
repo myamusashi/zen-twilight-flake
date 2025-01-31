@@ -9,7 +9,7 @@ def get_latest_release [repo: string]: nothing -> string {
 	  | where tag_name == "twilight"
 	  | get tag_name
 	  | get 0
-  } catch { $"twilight" }
+  } catch { |err| $"Failed to fetch latest release, aborting: ($err.msg)" }
 }
 
 def get_nix_hash [url: string]: nothing -> string  {
