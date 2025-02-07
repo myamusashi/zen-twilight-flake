@@ -6,10 +6,10 @@ def get_latest_release [repo: string]: nothing -> string {
   try {
 	http get $"https://api.github.com/repos/($repo)/releases"
 	  | where prerelease == true
-	  | where tag_name == "twilight"
-	  | get tag_name
+	  | where name == "Twilight build - 1.7.6t (2025-02-07 at 00:47:02)"
+	  | get name
 	  | get 1
-  } catch { |err| $"Failed to fetch latest release, aborting: ($err.msg)" }
+  } catch { "twilight" }
 }
 
 def get_nix_hash [url: string]: nothing -> string  {
