@@ -23,7 +23,9 @@ inputs = {
   # ...
   zen-browser.url = "github:youwen5/zen-browser-flake";
 
-  # optional, but recommended so it shares system libraries, and improves startup time
+  # optional, but recommended if you closely follow NixOS unstable so it shares
+  # system libraries, and improves startup time
+  # NOTE: if you experience a build failure with Zen, the first thing to check is to remove this line!
   zen-browser.inputs.nixpkgs.follows = "nixpkgs";
   # ...
 }
@@ -52,17 +54,48 @@ packages
 
 ## Installation
 
-In `environment.systemPackages`, add something similar to:
+The easiest way is to use the CLI imperatively:
+
+`nix profile install github:youwen5/zen-browser-flake`
+
+If you're on NixOS and/or home-manager, you should install it in your system or
+home configuration.
+
+For example, in `configuration.nix`, add something similar to:
 
 ```nix
-inputs.zen-browser.packages.${pkgs.system}.default
+environment.systemPackages = [
+  inputs.zen-browser.packages.${pkgs.system}.default
+];
 ```
 
-A binary called `zen` is provided.
+A binary called `zen` is provided as well as a desktop file that should show up
+in app launchers.
 
-You can also install it using the CLI imperatively:
 
-`nix profile install github:youwen5/zen-browser`
+## FAQ
+
+> How to run the update script locally?
+
+There's a workflow configured that runs every day at 8PM Pacific Time to
+automatically check for any new releases from `zen-browser/desktop` and update
+the flake. If you want to run the script manually, just enter the repo's
+directory and run
+
+```sh
+nix run .#update
+```
+
+> Is there a Cachix (binary cache)?
+
+Since we're not building from source and just wrapping upstream binaries we
+don't really need a binary cache as the patching process should take just a
+few seconds.
+
+If you're experiencing abnormally long build times you probably aren't
+overriding the `nixpkgs` input and it's duplicating a lot of system libraries.
+Just set `inputs.zen-browser.inputs.nixpkgs.follows = "nixpkgs"` or something
+similar.
 
 ## Caveats
 
@@ -73,25 +106,20 @@ input to your system nixpkgs, if using NixOS).
 This can be solved with
 [nix-community/nixGL](https://github.com/nix-community/nixGL).
 
-For Asahi Linux Fedora Remix users, you will need to apply the overlay from
-[this repo](https://github.com/tpwrules/nixos-apple-silicon/) to your
-nixpkgs, and then override this flake's nixpkgs input, and then use nixGL to
-get everything working properly. If that sounds too involved for you, I don't
-recommend using Nix to install Zen.
-
 ## 1Password
 
 Zen has to be manually added to the list of browsers that 1Password will
 communicate with. See [this wiki article](https://nixos.wiki/wiki/1Password)
 for more information. To enable 1Password integration, you need to add the line
-`.zen-wrapped` to the file `/etc/1password/custom_allowed_browsers`.
+`zen` to the file `/etc/1password/custom_allowed_browsers`.
 
 ## License
 
-GitHub says this repo is forked from
-[MarceColl/zen-browser-flake](https://github.com/MarceColl/zen-browser-flake),
-but this is a historical artifact. It shares effectively zero code or logic
-with the original after a complete rewrite to use `autoPatchelfHook` and
-`wrapFirefox` instead of manually patching in `fixupPhase`. The Nix code is
-licensed under the Unlicense and is released unencumbered into the public
-domain. Feel free to fork and use for whatever purposes.
+The derivation in `./zen-browser-unwrapped.nix` is mostly based on
+[firefox-bin-unwrapped](https://github.com/NixOS/nixpkgs/blob/nixos-24.11/pkgs/applications/networking/browsers/firefox-bin/default.nix#L119)
+which is MIT licensed Copyright (c) 2003-2025 Eelco Dolstra and the
+Nixpkgs/NixOS contributors.
+
+The rest of the code is licensed under the Unlicense and is released
+unencumbered into the public domain. Feel free to fork and use for whatever
+purposes. 
