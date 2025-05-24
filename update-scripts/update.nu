@@ -5,11 +5,11 @@
 def get_latest_release [repo: string]: nothing -> string {
   try {
 	http get $"https://api.github.com/repos/($repo)/releases"
-	  | where prerelease == true
-	  | where name == "Twilight build - 1.1.1t (2025-02-07 at 00:47:02)"
-	  | get name
-	  | get 1
-  } catch { |err|"Failed to fetch latest release, aborting: ($err.msg)" }
+	  | where prerelease == false
+	  | where tag_name != "twilight"
+	  | get tag_name
+	  | get 0
+  } catch { |err| $"Failed to fetch latest release, aborting: ($err.msg)" }
 }
 
 def get_nix_hash [url: string]: nothing -> string  {
@@ -28,8 +28,8 @@ export def generate_sources []: nothing -> record {
 	}
   }
 
-  let x86_64_url = $"https://github.com/zen-browser/desktop/releases/download/twilight/zen.linux-x86_64.tar.xz"
-  let aarch64_url = $"https://github.com/zen-browser/desktop/releases/download/twilight/zen.linux-aarch64.tar.xz"
+  let x86_64_url = $"https://github.com/zen-browser/desktop/releases/download/($tag)/zen.linux-x86_64.tar.xz"
+  let aarch64_url = $"https://github.com/zen-browser/desktop/releases/download/($tag)/zen.linux-aarch64.tar.xz"
   let sources = {
 	version: $tag
 	x86_64-linux: {
