@@ -5,10 +5,10 @@
 def get_latest_release [repo: string]: nothing -> string {
   try {
 	http get $"https://api.github.com/repos/($repo)/releases"
-	  | where prerelease == true
-	  | where tag_name == "twilight"
+	  | where prerelease == false
+	  | where tag_name != "twilight"
 	  | get tag_name
-	  | get 1
+	  | get 0
   } catch { |err| $"Failed to fetch latest release, aborting: ($err.msg)" }
 }
 
@@ -28,8 +28,8 @@ export def generate_sources []: nothing -> record {
 	}
   }
 
-  let x86_64_url = $"https://github.com/zen-browser/desktop/releases/download/twilight/zen.linux-x86_64.tar.xz"
-  let aarch64_url = $"https://github.com/zen-browser/desktop/releases/download/twilight/zen.linux-aarch64.tar.xz"
+  let x86_64_url = $"https://github.com/zen-browser/desktop/releases/download/($tag)/zen.linux-x86_64.tar.xz"
+  let aarch64_url = $"https://github.com/zen-browser/desktop/releases/download/($tag)/zen.linux-aarch64.tar.xz"
   let sources = {
 	version: $tag
 	x86_64-linux: {
