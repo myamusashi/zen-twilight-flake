@@ -1,29 +1,53 @@
-name: Update to latest version, and update flake inputs
+name: Update Repository dengan Nushell
 
 on:
   schedule:
-    - cron: "0 4 * * *"
-  workflow_dispatch:
+    # Jalankan setiap hari pada pukul 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Bisa dijalankan manual juga
 
 jobs:
-  update:
-    name: Update flake inputs and browser
+  update-sources:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT }}
-
-      - name: Check flake inputs
-        uses: DeterminateSystems/flake-checker-action@v4
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Check for update and perform update
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install Nushell
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          nix run .#update
+          curl -L https://github.com/nushell/nushell/releases/latest/download/nu-0.99.1-x86_64-unknown-linux-gnu.tar.gz -o nu.tar.gz
+          tar -xzf nu.tar.gz
+          sudo mv nu-0.99.1-x86_64-unknown-linux-gnu/nu /usr/local/bin/
+          rm -rf nu.tar.gz nu-0.99.1-x86_64-unknown-linux-gnu
+          nu --version
+      
+      - name: Jalankan Nushell update script
+        run: |
+          nu -c "use update-scripts/update.nu; update generate_sources"
+      
+      - name: Cek perubahan
+        id: check_changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit dan push perubahan
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "chore: auto update sources [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Tidak ada perubahan
+        if: steps.check_changes.outputs.changes == 'false'
+        run: echo "Tidak ada perubahan untuk di-commit"
